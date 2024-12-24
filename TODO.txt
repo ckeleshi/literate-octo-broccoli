@@ -1,0 +1,7 @@
+﻿让ImGui能正常输入中文
+探查输入法中文以GB2312编码来到WndProc的原因
+
+playground输入中文产生以下消息
+WM_IME_COMPOSITION  UNICODE GCS_RESULTSTR
+WM_IME_CHAR         UNICODE 前16bit重复计数(一直是1)
+WM_CHAR             UNICODE 前16bit重复计数(一直是1)

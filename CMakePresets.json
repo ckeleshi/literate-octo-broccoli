@@ -1,0 +1,47 @@
+{
+    "version": 8,
+    "configurePresets": [
+        {
+            "name": "x86-windows",
+            "displayName": "Visual Studio Community 2022 x86",
+            "description": "Visual Studio 2022 (x86)",
+            "generator": "Ninja Multi-Config",
+            "binaryDir": "${sourceDir}/out/${presetName}",
+            "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            },
+            "toolset": {
+                "value": "v143,host=x64",
+                "strategy": "external"
+            },
+            "architecture": {
+                "value": "x86",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+                "CMAKE_C_COMPILER": "cl.exe",
+                "CMAKE_CXX_COMPILER": "cl.exe",
+                "CMAKE_CXX_STANDARD": "20",
+                "VCPKG_TARGET_TRIPLET": "x86-windows-static"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "x86-windows-debug",
+            "displayName": "x86 Windows Debug",
+            "configurePreset": "x86-windows",
+            "configuration": "Debug"
+        },
+        {
+            "name": "x86-windows-release",
+            "displayName": "x86 Windows Release",
+            "configurePreset": "x86-windows",
+            "configuration": "Release"
+        }
+    ]
+}
