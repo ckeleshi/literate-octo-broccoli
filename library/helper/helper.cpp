@@ -136,8 +136,8 @@ void helper_class::imgui_process()
                  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse |
                      ImGuiWindowFlags_NoScrollbar);
 
-    ImGui::SetNextItemShortcut(ImGuiMod_Alt | ImGuiKey_S, ImGuiInputFlags_RouteAlways);
-    if (ImGui::Checkbox(_context.magic_hand_global_switch ? U8("停止魔手(Alt+S)") : U8("启动魔手(Alt+S)"),
+    ImGui::SetNextItemShortcut(ImGuiMod_Ctrl | ImGuiKey_S, ImGuiInputFlags_RouteAlways);
+    if (ImGui::Checkbox(_context.magic_hand_global_switch ? U8("停止魔手(Ctrl+S)") : U8("启动魔手(Ctrl+S)"),
                         &_context.magic_hand_global_switch))
     {
         // 开关魔手
@@ -298,7 +298,10 @@ void helper_class::imgui_process()
         if (ImGui::BeginItemTooltip())
         {
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-            ImGui::TextUnformatted(U8("两次按下此按键的最小间隔，与技能后摇/CD时间有关，设置过小会导致下一次这个技能放不出来。"));
+            ImGui::TextUnformatted(
+                U8("(0.20~365.00)\n"
+                   "表示此技能连续施放的间隔(受施法动作和CD影响)。\n"
+                   "举例: 这个技能是风焰术，你设置了10秒的间隔，发现它第2 4 6 8...次都是按不出来的，就要增大这个数值"));
             ImGui::PopTextWrapPos();
             ImGui::EndTooltip();
         }
@@ -326,7 +329,10 @@ void helper_class::imgui_process()
         if (ImGui::BeginItemTooltip())
         {
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-            ImGui::TextUnformatted(U8("按下此键后多久才能进行下一个按键动作，与技能释放/后摇时间有关。设置过小会导致下一个技能放不出来。"));
+            ImGui::TextUnformatted(U8(
+                "(0.20~1.50)\n"
+                "表示此技能施放后，下一个技能间隔多久才能成功施放(受施法动作和后摇影响)。\n"
+                "举例: 这个技能是火弹术，你设置了0.2秒的耗时，发现跟着火弹的下一个技能总是按不出来，就要增大这个数值"));
             ImGui::PopTextWrapPos();
             ImGui::EndTooltip();
         }
@@ -354,7 +360,7 @@ void helper_class::imgui_process()
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
             ImGui::TextUnformatted(
                 U8("如果技能在游戏中被设为默认技能(绿圈)"
-                   "，则可以勾选此项。\n勾选后，此按键每次启动魔手只会按一次。\n建议只用于平A技能。"));
+                   "，则可以勾选此项。\n勾选后，此技能每次启动魔手只会按一次。\n建议只用于平A技能。"));
             ImGui::PopTextWrapPos();
             ImGui::EndTooltip();
         }
@@ -377,10 +383,22 @@ void helper_class::imgui_process()
         ImGui::Separator();
         ImGui::Text(U8("修改帧数:"));
         ImGui::SameLine();
+        ImGui::TextDisabled("(?)");
+        if (ImGui::BeginItemTooltip())
+        {
+            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+            ImGui::TextUnformatted(U8("(33~2000)"
+                                      "修改帧数，获得流畅游戏体验，即时生效。\n"
+                                      "建议设置成和显示器刷新率一样。\n"
+                                      "如果发现帧率不能超过刷新率，要关闭垂直同步。"));
+            ImGui::PopTextWrapPos();
+            ImGui::EndTooltip();
+        }
+        ImGui::SameLine();
         ImGui::SetNextItemWidth(200);
         if (ImGui::InputInt("##FPS", &current_profile.fps, 1, 1))
         {
-            current_profile.fps = std::clamp(current_profile.fps, 33, 9999);
+            current_profile.fps = std::clamp(current_profile.fps, 33, 2000);
 
             // 重新计算延时参数
             fps_clock.reset();

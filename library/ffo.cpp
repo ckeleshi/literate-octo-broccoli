@@ -60,7 +60,7 @@ LRESULT WINAPI FFO_ImGui_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
         // 不让ImGui上的输入去到游戏聊天框
         if (io.WantCaptureKeyboard)
         {
-            //logger->info("msg: 0x{:X}, wParam: 0x{:X}, lParam: 0x{:X},", msg, wParam, lParam);
+            logger->info("msg: 0x{:X}, wParam: 0x{:X}, lParam: 0x{:X},", msg, wParam, lParam);
 
             return 0;
         }
