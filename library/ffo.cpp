@@ -9,17 +9,13 @@
 #include <imgui.h>
 #include <imgui_impl_opengl2.h>
 #include <imgui_impl_win32.h>
-#include <imgui_internal.h>
-#include <spdlog/logger.h>
-#include <spdlog/sinks/basic_file_sink.h>
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace
 {
-std::intptr_t                   display3d_base;
-WNDPROC                         ffo_wndproc;
-std::shared_ptr<spdlog::logger> logger;
+std::intptr_t display3d_base;
+WNDPROC       ffo_wndproc;
 
 wchar_t Param_To_WideChar(WPARAM wParam)
 {
@@ -39,39 +35,43 @@ LRESULT WINAPI FFO_ImGui_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 
     io.MouseDrawCursor = io.WantCaptureMouse;
 
-    if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
+    bool processed = false;
+
+    if (io.WantCaptureKeyboard)
     {
-        return 1;
+        if (msg == WM_CHAR && wParam >= 0xA0 && lParam == 1)
+        {
+            // 忽略被拆开的GB2312字节
+            processed = true;
+        }
+        else if (msg == WM_IME_CHAR && wParam > 0xA000 && lParam == 1)
+        {
+            // 将完整的GB2312字符转为Unicode再投给ImGui
+            io.AddInputCharacterUTF16(Param_To_WideChar(wParam));
+            processed = true;
+        }
     }
 
-    switch (msg)
+    if (!processed)
     {
-    case WM_LBUTTONDOWN: {
-        // 不让ImGui界面上的鼠标左键点击作用到游戏
-        if (io.WantCaptureMouse)
+        if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
         {
-            return 0;
+            return true;
         }
-        break;
-
-    case WM_CHAR:
-    case WM_IME_CHAR:
-    case WM_IME_COMPOSITION: {
-        // 不让ImGui上的输入去到游戏聊天框
-        if (io.WantCaptureKeyboard)
-        {
-            logger->info("msg: 0x{:X}, wParam: 0x{:X}, lParam: 0x{:X},", msg, wParam, lParam);
-
-            return 0;
-        }
-
-        break;
     }
+    else
+    {
+        return 0;
     }
 
-    default: {
-        break;
+    if (io.WantCaptureMouse && msg == WM_LBUTTONDOWN)
+    {
+        return 0;
     }
+
+    if (io.WantCaptureKeyboard && msg == WM_CHAR)
+    {
+        return 0;
     }
 
     return ffo_wndproc(hWnd, msg, wParam, lParam);
@@ -80,11 +80,6 @@ LRESULT WINAPI FFO_ImGui_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 // ImGui初始化
 int __fastcall FFO_ImGui_Init(std::intptr_t display3d, int, HWND a0, int a4)
 {
-    if (logger == nullptr)
-    {
-        logger = spdlog::basic_logger_mt("ffohelper", "ffohelper.log");
-    }
-
     auto game_init_result =
         injector::thiscall<int(std::intptr_t, HWND, int)>::call(display3d_base + 0x1F60, display3d, a0, a4);
 

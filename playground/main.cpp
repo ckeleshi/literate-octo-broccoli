@@ -16,6 +16,8 @@
 #include <imgui.h>
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
+#include <spdlog/logger.h>
+#include <spdlog/sinks/stdout_sinks.h>
 
 // Data
 static LPDIRECT3D9           g_pD3D        = nullptr;
@@ -23,6 +25,8 @@ static LPDIRECT3DDEVICE9     g_pd3dDevice  = nullptr;
 static bool                  g_DeviceLost  = false;
 static UINT                  g_ResizeWidth = 0, g_ResizeHeight = 0;
 static D3DPRESENT_PARAMETERS g_d3dpp = {};
+
+std::shared_ptr<spdlog::logger> logger;
 
 // Forward declarations of helper functions
 bool CreateDeviceD3D(HWND hWnd);
@@ -34,6 +38,8 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 // Main code
 int main(int, char **)
 {
+    logger = spdlog::stdout_logger_mt("playground");
+
     // Create application window
     // ImGui_ImplWin32_EnableDpiAwareness();
     WNDCLASSEXW wc = {sizeof(wc), CS_CLASSDC, WndProc,          0L,     0L, GetModuleHandle(nullptr), nullptr, nullptr,
@@ -63,7 +69,7 @@ int main(int, char **)
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
-    //ImGui::StyleColorsLight();
+    // ImGui::StyleColorsLight();
 
     // Setup Platform/Renderer backends
     ImGui_ImplWin32_Init(hwnd);
@@ -521,12 +527,11 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
     case WM_CHAR:
     case WM_IME_CHAR:
-    case WM_IME_COMPOSITION:
-    case WM_KEYDOWN:
-    case WM_KEYUP: {
-        char buffer[200];
-        std::sprintf(buffer, "msg: 0x%X, wParam: 0x%X, lParam: 0x%X\n", msg, wParam, lParam);
-        OutputDebugStringA(buffer);
+    case WM_IME_COMPOSITION: {
+        logger->info("msg: 0x{:X}, wParam: 0x{:X}, lParam: 0x{:X}", msg, wParam, lParam);
+        break;
+    }
+    default: {
         break;
     }
     }
@@ -546,6 +551,8 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_DESTROY:
         ::PostQuitMessage(0);
         return 0;
+    default:
+        break;
     }
     return ::DefWindowProcW(hWnd, msg, wParam, lParam);
 }

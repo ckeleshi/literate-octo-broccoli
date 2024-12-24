@@ -18,7 +18,7 @@ std::optional<std::chrono::steady_clock::duration> fps_interval;
 std::optional<target_clock>                        fps_clock;
 HWND                                               ffo_hwnd;
 
-// 按设定间隔，在还未到下一帧时间点时进行等待
+// 按设定间隔, 在还未到下一帧时间点时进行等待
 void WINAPI fps_sleep(DWORD)
 {
     if (!fps_interval.has_value())
@@ -137,8 +137,7 @@ void helper_class::imgui_process()
                      ImGuiWindowFlags_NoScrollbar);
 
     ImGui::SetNextItemShortcut(ImGuiMod_Ctrl | ImGuiKey_S, ImGuiInputFlags_RouteAlways);
-    if (ImGui::Checkbox(_context.magic_hand_global_switch ? U8("停止魔手(Ctrl+S)") : U8("启动魔手(Ctrl+S)"),
-                        &_context.magic_hand_global_switch))
+    if (ImGui::Checkbox("##switch", &_context.magic_hand_global_switch))
     {
         // 开关魔手
         if (_context.magic_hand_global_switch)
@@ -153,7 +152,11 @@ void helper_class::imgui_process()
 
     ImGui::SameLine();
 
-    if (ImGui::Button(_context.magic_hand_expanded ? U8("收起界面") : U8("展开界面")))
+    ImGui::Text("%s", _context.magic_hand_global_switch ? U8("停止(Ctrl+S)") : U8("启动(Ctrl+S)"));
+
+    ImGui::SameLine();
+
+    if (ImGui::Button(_context.magic_hand_expanded ? U8("收起") : U8("展开")))
     {
         _context.magic_hand_expanded = !_context.magic_hand_expanded;
     }
@@ -276,7 +279,7 @@ void helper_class::imgui_process()
         if (ImGui::BeginItemTooltip())
         {
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-            ImGui::TextUnformatted(U8("给对应按键打勾，让助手自动按键。"));
+            ImGui::TextUnformatted(U8("给对应按键打勾, 让助手自动按键。"));
             ImGui::PopTextWrapPos();
             ImGui::EndTooltip();
         }
@@ -298,10 +301,10 @@ void helper_class::imgui_process()
         if (ImGui::BeginItemTooltip())
         {
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-            ImGui::TextUnformatted(
-                U8("(0.20~365.00)\n"
-                   "表示此技能连续施放的间隔(受施法动作和CD影响)。\n"
-                   "举例: 这个技能是风焰术，你设置了10秒的间隔，发现它第2 4 6 8...次都是按不出来的，就要增大这个数值"));
+            ImGui::TextUnformatted(U8("(0.20~365.00)\n"
+                                      "表示此技能连续施放的间隔(受施法动作和CD影响)。\n"
+                                      "举例: 这个技能是风焰术, 你设置了 10 秒的间隔, 发现它第 2 4 6 8... "
+                                      "次都是按不出来的, 就要增大这个数值"));
             ImGui::PopTextWrapPos();
             ImGui::EndTooltip();
         }
@@ -329,10 +332,10 @@ void helper_class::imgui_process()
         if (ImGui::BeginItemTooltip())
         {
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-            ImGui::TextUnformatted(U8(
-                "(0.20~1.50)\n"
-                "表示此技能施放后，下一个技能间隔多久才能成功施放(受施法动作和后摇影响)。\n"
-                "举例: 这个技能是火弹术，你设置了0.2秒的耗时，发现跟着火弹的下一个技能总是按不出来，就要增大这个数值"));
+            ImGui::TextUnformatted(U8("(0.20~1.50)\n"
+                                      "表示此技能施放后, 下一个技能间隔多久才能成功施放(受施法动作和后摇影响)。\n"
+                                      "举例: 这个技能是火弹术, 你设置了 0.2 秒的耗时, "
+                                      "发现跟着火弹的下一个技能总是按不出来, 就要增大这个数值"));
             ImGui::PopTextWrapPos();
             ImGui::EndTooltip();
         }
@@ -360,7 +363,7 @@ void helper_class::imgui_process()
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
             ImGui::TextUnformatted(
                 U8("如果技能在游戏中被设为默认技能(绿圈)"
-                   "，则可以勾选此项。\n勾选后，此技能每次启动魔手只会按一次。\n建议只用于平A技能。"));
+                   ", 则可以勾选此项。\n勾选后, 此技能每次启动魔手只会按一次。\n建议只用于平A技能。"));
             ImGui::PopTextWrapPos();
             ImGui::EndTooltip();
         }
@@ -387,10 +390,10 @@ void helper_class::imgui_process()
         if (ImGui::BeginItemTooltip())
         {
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-            ImGui::TextUnformatted(U8("(33~2000)"
-                                      "修改帧数，获得流畅游戏体验，即时生效。\n"
+            ImGui::TextUnformatted(U8("(33~2000)\n"
+                                      "修改帧数, 获得流畅游戏体验, 即时生效。\n"
                                       "建议设置成和显示器刷新率一样。\n"
-                                      "如果发现帧率不能超过刷新率，要关闭垂直同步。"));
+                                      "如果发现帧率不能超过刷新率, 要关闭垂直同步。"));
             ImGui::PopTextWrapPos();
             ImGui::EndTooltip();
         }
@@ -422,7 +425,7 @@ void helper_class::begin_magic_hand()
 
 void helper_class::magic_hand_thread_proc(std::stop_token stt)
 {
-    // 启动魔手后，先初始化context
+    // 启动魔手后, 先初始化context
     // 将所有按键设为可以立刻触发的状态
     auto &current_profile = get_current_profile();
 
@@ -444,7 +447,7 @@ void helper_class::magic_hand_thread_proc(std::stop_token stt)
             // 已启用
             // 全局时钟
             // 自身时钟
-            // 如果是缺省，要从未按过
+            // 如果是缺省, 要从未按过
             if (current_profile.magic_hand_key_enable_flags[key_i] &&
                 _context.magic_hand_global_clock.target_time_reached() &&
                 _context.magic_hand_key_clocks[key_i].target_time_reached() &&
