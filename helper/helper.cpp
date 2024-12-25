@@ -136,7 +136,7 @@ void helper_class::imgui_process()
                  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse |
                      ImGuiWindowFlags_NoScrollbar);
 
-    ImGui::SetNextItemShortcut(ImGuiMod_Ctrl | ImGuiKey_S, ImGuiInputFlags_RouteAlways);
+    ImGui::SetNextItemShortcut(ImGuiKey_ModCtrl | ImGuiKey_S, ImGuiInputFlags_RouteAlways);
     if (ImGui::Checkbox("##switch", &_context.magic_hand_global_switch))
     {
         // 开关魔手
@@ -426,14 +426,16 @@ void helper_class::begin_magic_hand()
 void helper_class::magic_hand_thread_proc(std::stop_token stt)
 {
     // 启动魔手后, 先初始化context
-    // 将所有按键设为可以立刻触发的状态
     auto &current_profile = get_current_profile();
 
-    _context.magic_hand_global_clock.set_target_time_from_now(std::chrono::milliseconds(-1));
+    // 魔手启动后推迟350ms才工作，避免第一个技能被快捷键Ctrl卡掉
+    auto now = std::chrono::steady_clock::now() + std::chrono::milliseconds(350);
+
+    _context.magic_hand_global_clock.set_target_time(now);
 
     for (auto &key_clock : _context.magic_hand_key_clocks)
     {
-        key_clock.set_target_time_from_now(std::chrono::milliseconds(-1));
+        key_clock.set_target_time(now);
     }
 
     _context.magic_hand_default_key_pressed.fill(false);
@@ -481,5 +483,11 @@ void helper_class::magic_hand_thread_proc(std::stop_token stt)
 
 void helper_class::end_magic_hand()
 {
+    if (!_magic_hand_thread.has_value())
+    {
+        return;
+    }
+
+    _magic_hand_thread->request_stop();
     _magic_hand_thread.reset();
 }
