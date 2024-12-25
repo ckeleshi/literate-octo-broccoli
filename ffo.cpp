@@ -97,7 +97,7 @@ int __fastcall FFO_ImGui_Init(std::intptr_t display3d, int, HWND a0, int a4)
         ImFont *font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\msyh.ttc", 18.0f, nullptr,
                                                     io.Fonts->GetGlyphRangesChineseFull());
 
-        SetWindowLongPtr(a0, GWLP_WNDPROC, reinterpret_cast<LONG>(&FFO_ImGui_WndProc));
+        SetWindowLongPtrA(a0, GWLP_WNDPROC, reinterpret_cast<LONG>(&FFO_ImGui_WndProc));
     }
 
     return game_init_result;

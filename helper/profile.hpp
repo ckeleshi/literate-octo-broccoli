@@ -20,7 +20,7 @@ struct profile
     {
         name = U8("默认");
         magic_hand_key_enable_flags.fill(false);
-        magic_hand_key_intervals.fill(0.8);
+        magic_hand_key_intervals.fill(1.0);
         magic_hand_key_latencies.fill(0.8);
         magic_hand_key_is_default_flags.fill(false);
     }

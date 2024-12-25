@@ -301,10 +301,10 @@ void helper_class::imgui_process()
         if (ImGui::BeginItemTooltip())
         {
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-            ImGui::TextUnformatted(U8("(0.20~365.00)\n"
+            ImGui::TextUnformatted(U8("(0.1~365.00)\n"
                                       "表示此技能连续施放的间隔(受施法动作和CD影响)。\n"
                                       "举例: 这个技能是风焰术, 你设置了 10 秒的间隔, 发现它第 2 4 6 8... "
-                                      "次都是按不出来的, 就要增大这个数值"));
+                                      "次都是按不出来的, 就要增大这个数值。\n"));
             ImGui::PopTextWrapPos();
             ImGui::EndTooltip();
         }
@@ -315,7 +315,7 @@ void helper_class::imgui_process()
             if (ImGui::InputDouble("##KeyInterval", &current_profile.magic_hand_key_intervals[i], 0.01, 0.1, "%.2f"))
             {
                 current_profile.magic_hand_key_intervals[i] =
-                    std::clamp(current_profile.magic_hand_key_intervals[i], 0.2, 365.0);
+                    std::clamp(current_profile.magic_hand_key_intervals[i], 0.1, 365.0);
             }
             ImGui::PopID();
         }
@@ -332,7 +332,7 @@ void helper_class::imgui_process()
         if (ImGui::BeginItemTooltip())
         {
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-            ImGui::TextUnformatted(U8("(0.20~1.50)\n"
+            ImGui::TextUnformatted(U8("(0.0~1.50)\n"
                                       "表示此技能施放后, 下一个技能间隔多久才能成功施放(受施法动作和后摇影响)。\n"
                                       "举例: 这个技能是火弹术, 你设置了 0.2 秒的耗时, "
                                       "发现跟着火弹的下一个技能总是按不出来, 就要增大这个数值"));
@@ -345,7 +345,7 @@ void helper_class::imgui_process()
             if (ImGui::InputDouble("##KeyLatency", &current_profile.magic_hand_key_latencies[i], 0.01, 0.1, "%.2f"))
             {
                 current_profile.magic_hand_key_latencies[i] =
-                    std::clamp(current_profile.magic_hand_key_latencies[i], 0.2, 1.5);
+                    std::clamp(current_profile.magic_hand_key_latencies[i], 0.0, 1.5);
             }
             ImGui::PopID();
         }
@@ -429,11 +429,11 @@ void helper_class::magic_hand_thread_proc(std::stop_token stt)
     // 将所有按键设为可以立刻触发的状态
     auto &current_profile = get_current_profile();
 
-    _context.magic_hand_global_clock.set_target_time_from_now(std::chrono::seconds(0));
+    _context.magic_hand_global_clock.set_target_time_from_now(std::chrono::milliseconds(-1));
 
     for (auto &key_clock : _context.magic_hand_key_clocks)
     {
-        key_clock.set_target_time_from_now(std::chrono::seconds(0));
+        key_clock.set_target_time_from_now(std::chrono::milliseconds(-1));
     }
 
     _context.magic_hand_default_key_pressed.fill(false);
@@ -457,21 +457,21 @@ void helper_class::magic_hand_thread_proc(std::stop_token stt)
                 // 发送按键消息
                 auto key_code = VK_F1 + key_i;
 
-                PostMessageW(ffo_hwnd, WM_KEYDOWN, key_code, 0x003B0001);
-                PostMessageW(ffo_hwnd, WM_KEYUP, key_code, 0xC03B0001);
+                PostMessageA(ffo_hwnd, WM_KEYDOWN, key_code, 0);
+                PostMessageA(ffo_hwnd, WM_KEYUP, key_code, 0);
 
                 // 调整全局时钟
                 _context.magic_hand_global_clock.adjust_target_time(std::chrono::milliseconds(
                     static_cast<int>(current_profile.magic_hand_key_latencies[key_i] * 1000.0)));
 
-                // 调整全局时钟
+                // 调整自身时钟
                 _context.magic_hand_key_clocks[key_i].adjust_target_time(std::chrono::milliseconds(
                     static_cast<int>(current_profile.magic_hand_key_intervals[key_i] * 1000.0)));
 
                 // 调整缺省被触发标志
                 _context.magic_hand_default_key_pressed[key_i] = true;
 
-                break;
+                // break;
             }
         }
 
