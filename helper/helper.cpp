@@ -135,7 +135,7 @@ profile &helper_class::get_current_profile()
 
 void helper_class::imgui_process()
 {
-    auto &current_profile = _config.get_current_profile();
+    auto *current_profile = &_config.get_current_profile();
 
 #pragma region FFOHelper
     ImGui::Begin("FFOHelper", nullptr,
@@ -176,7 +176,7 @@ void helper_class::imgui_process()
         ImGui::SameLine();
 
         ImGui::SetNextItemWidth(200);
-        if (ImGui::BeginCombo("##profile", current_profile.name.c_str()))
+        if (ImGui::BeginCombo("##profile", current_profile->name.c_str()))
         {
             for (std::size_t i = 0; i < _config.profiles.size(); i++)
             {
@@ -185,6 +185,7 @@ void helper_class::imgui_process()
                 if (ImGui::Selectable(_config.profiles[i].name.c_str(), is_selected))
                 {
                     _config.profile_index = i;
+                    current_profile       = &_config.get_current_profile();
 
                     // 重新计算延时参数
                     fps_clock.reset();
@@ -214,13 +215,13 @@ void helper_class::imgui_process()
             ImGui::SameLine();
             ImGui::SetNextItemWidth(150);
 
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(200, 200, 200, 255));
+            //ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(200, 200, 200, 255));
             ImGui::InputText("##profile_name", new_profile_name.data(), 256);
-            ImGui::PopStyleColor();
+            //ImGui::PopStyleColor();
 
             if (ImGui::Button(U8("确定")))
             {
-                _config.profiles.push_back(current_profile);
+                _config.profiles.push_back(*current_profile);
                 _config.profiles.back().name = new_profile_name.data();
 
                 new_profile_name.fill(0);
@@ -257,13 +258,13 @@ void helper_class::imgui_process()
                                 ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
         if (ImGui::BeginPopupModal(U8("删除"), nullptr, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            ImGui::Text(U8("确定删除配置 %s 吗?"), current_profile.name.c_str());
+            ImGui::Text(U8("确定删除配置 %s 吗?"), current_profile->name.c_str());
             if (ImGui::Button(U8("确定")))
             {
                 // 删除当前配置后补位
                 _config.profiles.erase(_config.profiles.begin() + static_cast<std::ptrdiff_t>(_config.profile_index));
                 _config.profile_index = std::clamp(_config.profile_index, 0u, _config.profiles.size() - 1);
-                current_profile       = _config.get_current_profile();
+                current_profile       = &_config.get_current_profile();
 
                 ImGui::CloseCurrentPopup();
             }
@@ -293,7 +294,7 @@ void helper_class::imgui_process()
         {
             char key_name_buffer[20];
             std::sprintf(key_name_buffer, "F%d", i + 1);
-            ImGui::Checkbox(key_name_buffer, &current_profile.magic_hand_key_enable_flags[i]);
+            ImGui::Checkbox(key_name_buffer, &current_profile->magic_hand_key_enable_flags[i]);
         }
         ImGui::EndGroup();
 
@@ -307,7 +308,7 @@ void helper_class::imgui_process()
         if (ImGui::BeginItemTooltip())
         {
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-            ImGui::TextUnformatted(U8("(0.1~365.00)\n"
+            ImGui::TextUnformatted(U8("(0.2~365.00)\n"
                                       "表示此技能连续施放的间隔(受施法动作和CD影响)。\n"
                                       "举例: 这个技能是风焰术, 你设置了 10 秒的间隔, 发现它第 2 4 6 8... "
                                       "次都是按不出来的, 就要增大这个数值。\n"));
@@ -318,10 +319,10 @@ void helper_class::imgui_process()
         for (int i = 0; i < 12; i++)
         {
             ImGui::PushID(i);
-            if (ImGui::InputDouble("##KeyInterval", &current_profile.magic_hand_key_intervals[i], 0.01, 0.1, "%.2f"))
+            if (ImGui::InputDouble("##KeyInterval", &current_profile->magic_hand_key_intervals[i], 0.01, 0.1, "%.2f"))
             {
-                current_profile.magic_hand_key_intervals[i] =
-                    std::clamp(current_profile.magic_hand_key_intervals[i], 0.2, 365.0);
+                current_profile->magic_hand_key_intervals[i] =
+                    std::clamp(current_profile->magic_hand_key_intervals[i], 0.2, 365.0);
             }
             ImGui::PopID();
         }
@@ -348,10 +349,10 @@ void helper_class::imgui_process()
         for (int i = 0; i < 12; i++)
         {
             ImGui::PushID(i);
-            if (ImGui::InputDouble("##KeyLatency", &current_profile.magic_hand_key_latencies[i], 0.01, 0.1, "%.2f"))
+            if (ImGui::InputDouble("##KeyLatency", &current_profile->magic_hand_key_latencies[i], 0.01, 0.1, "%.2f"))
             {
-                current_profile.magic_hand_key_latencies[i] =
-                    std::clamp(current_profile.magic_hand_key_latencies[i], 0.0, 1.5);
+                current_profile->magic_hand_key_latencies[i] =
+                    std::clamp(current_profile->magic_hand_key_latencies[i], 0.0, 1.5);
             }
             ImGui::PopID();
         }
@@ -377,11 +378,11 @@ void helper_class::imgui_process()
         {
             ImGui::PushID(i);
 
-            if (ImGui::Checkbox("##KeyIsDefault", &current_profile.magic_hand_key_is_default_flags[i]))
+            if (ImGui::Checkbox("##KeyIsDefault", &current_profile->magic_hand_key_is_default_flags[i]))
             {
-                auto backup = current_profile.magic_hand_key_is_default_flags[i];
-                current_profile.magic_hand_key_is_default_flags.fill(false);
-                current_profile.magic_hand_key_is_default_flags[i] = backup;
+                auto backup = current_profile->magic_hand_key_is_default_flags[i];
+                current_profile->magic_hand_key_is_default_flags.fill(false);
+                current_profile->magic_hand_key_is_default_flags[i] = backup;
             }
 
             ImGui::PopID();
@@ -405,9 +406,9 @@ void helper_class::imgui_process()
         }
         ImGui::SameLine();
         ImGui::SetNextItemWidth(200);
-        if (ImGui::InputInt("##FPS", &current_profile.fps, 1, 1))
+        if (ImGui::InputInt("##FPS", &current_profile->fps, 1, 1))
         {
-            current_profile.fps = std::clamp(current_profile.fps, 33, 2000);
+            current_profile->fps = std::clamp(current_profile->fps, 33, 2000);
 
             // 重新计算延时参数
             fps_clock.reset();
