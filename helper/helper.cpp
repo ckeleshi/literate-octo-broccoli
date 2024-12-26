@@ -91,6 +91,12 @@ void helper_class::save_config()
     ofs << nlohmann::json(_config).dump();
 }
 
+struct GameDevice
+{
+    int  f0[5];
+    HWND f14;
+};
+
 void helper_class::patch()
 {
     byte_pattern patterner;
@@ -101,11 +107,11 @@ void helper_class::patch()
         // 修改帧数等待逻辑
         unsigned char asm_bytes[] = {0x90, 0xBB}; // nop; mov ebx, &fps_sleep;
         injector::WriteMemoryRaw(patterner.get(0).i(4), asm_bytes, 2, true);
-        injector::WriteObject<void *>(patterner.get(0).i(6), &fps_sleep, true);
+        injector::WriteObject(patterner.get(0).i(6), &fps_sleep, true);
 
-        // 取得窗口句柄
-        auto wndPointer = injector::ReadMemory<HWND **>(patterner.get(0).i(0xA5), true);
-        ffo_hwnd        = (*wndPointer)[5];
+        // 取得游戏窗口句柄
+        auto devicePointer = *injector::ReadMemory<GameDevice **>(patterner.get(0).i(0xA5), true);
+        ffo_hwnd           = devicePointer->f14;
     }
 }
 
@@ -315,7 +321,7 @@ void helper_class::imgui_process()
             if (ImGui::InputDouble("##KeyInterval", &current_profile.magic_hand_key_intervals[i], 0.01, 0.1, "%.2f"))
             {
                 current_profile.magic_hand_key_intervals[i] =
-                    std::clamp(current_profile.magic_hand_key_intervals[i], 0.1, 365.0);
+                    std::clamp(current_profile.magic_hand_key_intervals[i], 0.2, 365.0);
             }
             ImGui::PopID();
         }
