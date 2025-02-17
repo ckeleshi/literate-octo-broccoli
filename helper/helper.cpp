@@ -158,7 +158,12 @@ void helper_class::imgui_process()
 
     ImGui::SameLine();
 
-    ImGui::Text("%s", _context.magic_hand_global_switch ? U8("停止(Ctrl+S)") : U8("启动(Ctrl+S)"));
+    ImGui::Text("%s", U8("启用"));
+    if (ImGui::BeginItemTooltip())
+    {
+        ImGui::TextUnformatted(U8("Ctrl+S"));
+        ImGui::EndTooltip();
+    }
 
     ImGui::SameLine();
 
@@ -215,9 +220,9 @@ void helper_class::imgui_process()
             ImGui::SameLine();
             ImGui::SetNextItemWidth(150);
 
-            //ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(200, 200, 200, 255));
+            // ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(200, 200, 200, 255));
             ImGui::InputText("##profile_name", new_profile_name.data(), 256);
-            //ImGui::PopStyleColor();
+            // ImGui::PopStyleColor();
 
             if (ImGui::Button(U8("确定")))
             {
