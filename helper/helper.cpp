@@ -101,16 +101,16 @@ void helper_class::patch()
 {
     byte_pattern patterner;
 
-    patterner.find_pattern("83 65 08 00 8B 1D");
+    // 替换原来调用的Sleep函数 0x5AA467
+    patterner.find_pattern("50 FF 15 14 31 66 00 E9 16 FF FF FF");
     if (patterner.has_size(1))
     {
-        // 修改帧数等待逻辑
-        unsigned char asm_bytes[] = {0x90, 0xBB}; // nop; mov ebx, &fps_sleep;
-        injector::WriteMemoryRaw(patterner.get(0).i(4), asm_bytes, 2, true);
-        injector::WriteObject(patterner.get(0).i(6), &fps_sleep, true);
+        injector::MakeCALL(patterner.get(0).i(1), fps_sleep);
+        injector::MakeNOP(patterner.get(0).i(6), 1);
 
         // 取得游戏窗口句柄
-        auto devicePointer = *injector::ReadMemory<GameDevice **>(patterner.get(0).i(0xA5), true);
+        //"GameDevice Init Succeeded"文本附近，使用GameDevice指针，在这里拿到该指针 0x5AA2F2
+        auto devicePointer = *injector::ReadMemory<GameDevice **>(patterner.get(0).i(0x5AA2F4 - 0x5AA467), true);
         ffo_hwnd           = devicePointer->f14;
     }
 }
