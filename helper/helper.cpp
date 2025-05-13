@@ -101,7 +101,7 @@ void helper_class::patch()
 {
     byte_pattern patterner;
 
-    // 替换原来调用的Sleep函数 0x5AA467
+    // 替换原来调用的Sleep函数
     patterner.find_pattern("50 FF 15 14 31 66 00 E9 16 FF FF FF");
     if (patterner.has_size(1))
     {
@@ -109,8 +109,8 @@ void helper_class::patch()
         injector::MakeNOP(patterner.get(0).i(6), 1);
 
         // 取得游戏窗口句柄
-        //"GameDevice Init Succeeded"文本附近，使用GameDevice指针，在这里拿到该指针 0x5AA2F2
-        auto devicePointer = *injector::ReadMemory<GameDevice **>(patterner.get(0).i(0x5AA2F4 - 0x5AA467), true);
+        //主循环中三个连续函数调用的第一个，使用GameDevice指针，在这里拿到该指针
+        auto devicePointer = *injector::ReadMemory<GameDevice **>(patterner.get(0).i(0x5AA4AE - 0x5AA520), true);
         ffo_hwnd           = devicePointer->f14;
     }
 }
