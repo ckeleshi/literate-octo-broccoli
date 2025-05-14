@@ -24,5 +24,5 @@ target_link_libraries(library PRIVATE winmm opengl32)
 target_link_libraries(library PRIVATE nlohmann_json::nlohmann_json)
 
 set_target_properties(library PROPERTIES
-    OUTPUT_NAME "opengl32"
+    OUTPUT_NAME "Display3D"
 )

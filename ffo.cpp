@@ -97,7 +97,7 @@ int __fastcall FFO_ImGui_Init(std::intptr_t display3d, int, HWND a0, int a4)
         ImFont *font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\msyh.ttc", 18.0f, nullptr,
                                                     io.Fonts->GetGlyphRangesChineseFull());
 
-        //SetWindowLongPtrA(a0, GWLP_WNDPROC, reinterpret_cast<LONG>(&FFO_ImGui_WndProc));
+        SetWindowLongPtrA(a0, GWLP_WNDPROC, reinterpret_cast<LONG>(&FFO_ImGui_WndProc));
     }
 
     return game_init_result;
@@ -133,7 +133,7 @@ void inject_game()
 {
     byte_pattern patterner;
 
-    display3d_base = reinterpret_cast<std::intptr_t>(GetModuleHandleW(L"Display3D.dll"));
+    display3d_base = reinterpret_cast<std::intptr_t>(GetModuleHandleW(L"Display3DO.dll"));
 
     // 插入ImGui渲染
     injector::WriteObject(display3d_base + 0x51344, &FFO_ImGui_Init, true);
