@@ -491,7 +491,7 @@ void helper_class::patch()
     byte_pattern patterner;
 
     // 替换原来调用的Sleep函数
-    patterner.find_pattern("50 FF 15 14 31 66 00 E9 16 FF FF FF");
+    patterner.find_pattern("50 FF 15 ? ? ? ? E9 16 FF FF FF");
     if (patterner.has_size(1))
     {
         injector::MakeCALL(patterner.get(0).i(1), fps_sleep);
@@ -499,7 +499,7 @@ void helper_class::patch()
 
         // 取得游戏窗口句柄
         //"gamedata new--%d"下方，使用GameDevice指针，在这里拿到该指针
-        //在dll注入时只有这个GameDevice指针被赋值，另一个还没有值
+        // 在dll注入时只有这个GameDevice指针被赋值，另一个还没有值
         auto devicePointer = *injector::ReadMemory<GameDevice **>(patterner.get(0).i(0x5AA436 - 0x5AA5A9), true);
         ffo_hwnd           = devicePointer->f14;
     }
