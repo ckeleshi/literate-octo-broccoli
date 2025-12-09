@@ -81,7 +81,7 @@ LRESULT WINAPI FFO_ImGui_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 int __fastcall FFO_ImGui_Init(std::intptr_t display3d, int, HWND a0, int a4)
 {
     auto game_init_result =
-        injector::thiscall<int(std::intptr_t, HWND, int)>::call(display3d_base + 0x1F60, display3d, a0, a4);
+        injector::thiscall<int(std::intptr_t, HWND, int)>::call(display3d_base + 0x1F80, display3d, a0, a4);
 
     if (game_init_result == 0)
     {
@@ -97,7 +97,7 @@ int __fastcall FFO_ImGui_Init(std::intptr_t display3d, int, HWND a0, int a4)
         ImFont *font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\msyh.ttc", 18.0f, nullptr,
                                                     io.Fonts->GetGlyphRangesChineseFull());
 
-        //SetWindowLongPtrA(a0, GWLP_WNDPROC, reinterpret_cast<LONG>(&FFO_ImGui_WndProc));
+        SetWindowLongPtrA(a0, GWLP_WNDPROC, reinterpret_cast<LONG>(&FFO_ImGui_WndProc));
     }
 
     return game_init_result;
@@ -115,7 +115,7 @@ int __fastcall FFO_ImGui_Update(std::intptr_t display3d)
     ImGui::Render();
     ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 
-    return injector::thiscall<int(std::intptr_t)>::call(display3d_base + 0x2050, display3d);
+    return injector::thiscall<int(std::intptr_t)>::call(display3d_base + 0x2070, display3d);
 }
 
 // 销毁ImGui
@@ -125,7 +125,7 @@ int __fastcall FFO_ImGui_Destroy(std::intptr_t display3d)
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
 
-    return injector::thiscall<int(std::intptr_t)>::call(display3d_base + 0x1E70, display3d);
+    return injector::thiscall<int(std::intptr_t)>::call(display3d_base + 0x1E90, display3d);
 }
 } // namespace
 
@@ -133,13 +133,15 @@ void inject_game()
 {
     byte_pattern patterner;
 
-    display3d_base = reinterpret_cast<std::intptr_t>(GetModuleHandleW(L"Display3D.dll"));
+    auto display3d_module = GetModuleHandleW(L"Display3D.dll");
+    display3d_base        = reinterpret_cast<std::intptr_t>(display3d_module);
+    auto display3d_vtbl = reinterpret_cast<std::intptr_t>(GetProcAddress(display3d_module, "??_7IDisplay@@6B@")) + 0xDC;
 
     // 插入ImGui渲染
-    injector::WriteObject(display3d_base + 0x51344, &FFO_ImGui_Init, true);
-    injector::WriteObject(display3d_base + 0x51348, &FFO_ImGui_Init, true);
-    injector::WriteObject(display3d_base + 0x5135C, &FFO_ImGui_Update, true);
-    injector::WriteObject(display3d_base + 0x51350, &FFO_ImGui_Destroy, true);
+    injector::WriteObject(display3d_vtbl + 0xC, &FFO_ImGui_Init, true);
+    injector::WriteObject(display3d_vtbl + 0x10, &FFO_ImGui_Init, true);
+    injector::WriteObject(display3d_vtbl + 0x24, &FFO_ImGui_Update, true);
+    injector::WriteObject(display3d_vtbl + 0x18, &FFO_ImGui_Destroy, true);
 
     // 储存原始WndProc函数
     patterner.find_pattern("C7 45 A8 08 00 00 00 C7 45 AC");
