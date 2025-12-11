@@ -2,6 +2,7 @@
 #include "hooking/byte_pattern.h"
 #include "hooking/injector/calling.hpp"
 #include "hooking/injector/hooking.hpp"
+#include "hooking/injector/utility.hpp"
 
 #include <WinUser.h>
 #include <Windows.h>
@@ -16,6 +17,10 @@ namespace
 {
 std::intptr_t display3d_base;
 WNDPROC       ffo_wndproc;
+
+static injector::hook_back<int(__fastcall *)(std::intptr_t, int, HWND, int)> Display3D_Init_Hookback;
+static injector::hook_back<int(__fastcall *)(std::intptr_t)>                 Display3D_Update_Hookback;
+static injector::hook_back<int(__fastcall *)(std::intptr_t)>                 Display3D_Destroy_Hookback;
 
 wchar_t Param_To_WideChar(WPARAM wParam)
 {
@@ -80,8 +85,7 @@ LRESULT WINAPI FFO_ImGui_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 // ImGui初始化
 int __fastcall FFO_ImGui_Init(std::intptr_t display3d, int, HWND a0, int a4)
 {
-    auto game_init_result =
-        injector::thiscall<int(std::intptr_t, HWND, int)>::call(display3d_base + 0x1F80, display3d, a0, a4);
+    auto game_init_result = Display3D_Init_Hookback.fun(display3d, 0, a0, a4);
 
     if (game_init_result == 0)
     {
@@ -115,7 +119,7 @@ int __fastcall FFO_ImGui_Update(std::intptr_t display3d)
     ImGui::Render();
     ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 
-    return injector::thiscall<int(std::intptr_t)>::call(display3d_base + 0x2070, display3d);
+    return Display3D_Update_Hookback.fun(display3d);
 }
 
 // 销毁ImGui
@@ -125,7 +129,7 @@ int __fastcall FFO_ImGui_Destroy(std::intptr_t display3d)
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
 
-    return injector::thiscall<int(std::intptr_t)>::call(display3d_base + 0x1E90, display3d);
+    return Display3D_Destroy_Hookback.fun(display3d);
 }
 } // namespace
 
@@ -138,9 +142,14 @@ void inject_game()
     auto display3d_vtbl = reinterpret_cast<std::intptr_t>(GetProcAddress(display3d_module, "??_7IDisplay@@6B@")) + 0xDC;
 
     // 插入ImGui渲染
+    injector::ReadObject(display3d_vtbl + 0xC, Display3D_Init_Hookback.fun);
     injector::WriteObject(display3d_vtbl + 0xC, &FFO_ImGui_Init, true);
     injector::WriteObject(display3d_vtbl + 0x10, &FFO_ImGui_Init, true);
+
+    injector::ReadObject(display3d_vtbl + 0x24, Display3D_Update_Hookback.fun);
     injector::WriteObject(display3d_vtbl + 0x24, &FFO_ImGui_Update, true);
+
+    injector::ReadObject(display3d_vtbl + 0x18, Display3D_Destroy_Hookback.fun);
     injector::WriteObject(display3d_vtbl + 0x18, &FFO_ImGui_Destroy, true);
 
     // 储存原始WndProc函数
